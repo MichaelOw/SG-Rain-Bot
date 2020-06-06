@@ -1,4 +1,4 @@
-# sg_rain_bot
+# SG Rain Bot
 Explore the [webscraping notebook](https://github.com/MichaelOw/SG_Rain_Bot/blob/master/notebooks/web_scraping.ipynb)!
 
 Step 1: Load Telegram API Token
