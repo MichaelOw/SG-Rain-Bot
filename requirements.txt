@@ -1,0 +1,2 @@
+telegram==0.0.1
+beautifulsoup4==4.9.1
