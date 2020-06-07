@@ -15,6 +15,7 @@ Open sg_rain_bot.py and edit line below.
 ### Step 2: Run the Python script
     $ python sg_rain_bot.py
 
-### Step 3: Start getting alerts!
+### Step 3: Start getting alerts
+Add the bot to your Telegram app and start receiving rain alerts!
 
 ![alt text](demo.png)
