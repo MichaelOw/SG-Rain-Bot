@@ -17,9 +17,11 @@ def send_updates_to_suscribers(bot, db, rain_data, last_time, n):
         rain_data: RainData object
         last_time (float): output of time.time()
         n (int): Interval between checks in minutes
+    Returns:
+        last_time (float): output of time.time()
     '''
     if not last_time or time.time() > last_time + n*60:
-        logger.debug('Checking for rain...')
+        logger.debug(f'Checking for rain... ({time.time()} > {last_time} + {n}*60)')
         last_time = time.time()
         text = rain_data.get_text()
         logger.debug(f'Rain report: {text}')
@@ -28,6 +30,7 @@ def send_updates_to_suscribers(bot, db, rain_data, last_time, n):
         if text:
             for id in ls_ids:
                 bot.send_text(id, text, delete_last=1)
+    return last_time
 
 #add suscriber for any message received
 def handle_updates(bot, db):
@@ -49,7 +52,7 @@ def main():
     last_time = None
     while 1:
         try:
-            send_updates_to_suscribers(bot, db, rain_data, last_time, n)
+            last_time = send_updates_to_suscribers(bot, db, rain_data, last_time, n)
             handle_updates(bot, db)
         except NetworkError:
             time.sleep(1)
@@ -83,7 +86,7 @@ if __name__ == '__main__':
     logger = logging.getLogger('sg_rain_bot')
     logger.setLevel(logging.DEBUG)
     c_handler = logging.StreamHandler() #stream log
-    c_handler.setLevel(logging.INFO) #logging.DEBUG
+    c_handler.setLevel(logging.DEBUG) #DEBUG INFO ERROR
     c_handler.setFormatter(logging.Formatter('%(message)s'))
     logger.addHandler(c_handler)
     f_handler = logging.FileHandler('log.log') #file log
