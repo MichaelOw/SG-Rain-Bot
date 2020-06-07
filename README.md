@@ -1,8 +1,7 @@
 # SG Rain Bot
 ## Project Summary
-In this project, weather data is web-scraped from a government weather website and rain alerts are automatically sent to users through a Telegram bot.
-
-Explore the [webscraping notebook](https://github.com/MichaelOw/SG_Rain_Bot/blob/master/notebooks/web_scraping.ipynb)!
+* Weather data is web-scraped from a government weather website ([See webscraping notebook!](https://github.com/MichaelOw/SG_Rain_Bot/blob/master/notebooks/web_scraping.ipynb))
+* Rain alerts are sent to users through a Telegram bot
 
 ## Run it yourself!
 
