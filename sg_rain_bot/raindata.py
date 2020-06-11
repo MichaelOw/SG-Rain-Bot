@@ -18,7 +18,8 @@ class RainData:
     def get_text(self):
         '''
         Returns:
-            text (str): Formatted rain report text to send to telegram users
+            rain_report_str (str): Formatted rain report text to send to telegram users
+            is_new_info (int): 1 if is new info, 0 o.w.
         '''
         source = urllib.request.urlopen('http://www.weather.gov.sg/weather-forecast-2hrnowcast-2/').read()
         soup = bs.BeautifulSoup(source,'html.parser')
@@ -32,7 +33,6 @@ class RainData:
             for tr in table_rows:
                 td = tr.find_all('td')
                 row = [i.text for i in td]
-                logger.debug(row)
                 if row:
                     weather = row[1][1:]
                     weather_wordlist = weather.split()
@@ -55,7 +55,6 @@ class RainData:
                     if not marked: report += '__ '
                 report += '\n'
                 i+=1
-
             rain_list.sort(key = lambda tuple: tuple[3]) #sort region index
             rain_list.sort(key = lambda tuple: tuple[2]) #sort weather
             weather = ''
@@ -69,19 +68,18 @@ class RainData:
                     region = tuple[0]
                     report += '\n- [{}] '.format(region)
                 report += '{}, '.format(tuple[1])
-            text = f'<b>Latest Forecast {timing}:</b>\n{report}\nwww.weather.gov.sg/weather-rain-area-50km'
+            rain_report_str = f'<b>Latest Forecast {timing}:</b>\n{report}\nwww.weather.gov.sg/weather-rain-area-50km'
         else:
-            text = 'No rain warnings :)'
+            rain_report_str = 'No rain warnings :)'
             if self.first_time:
                 self.first_time = 0
-                self.previous_text = text
-
-        #only send if new information, and not bot first time and no rain
-        if self.previous_text == text:
-            return ''
+                self.previous_text = rain_report_str        
+        if self.previous_text == rain_report_str:
+            is_new_info = 0
         else:
-            self.previous_text = text
-            return text
+            self.previous_text = rain_report_str
+            is_new_info = 1
+        return rain_report_str, is_new_info
                 
 rain_words = ['rain', 'showers']
 region_index = ['NW','NN','NE','WW','CC','EE','SW','SS','SE']

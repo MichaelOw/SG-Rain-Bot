@@ -6,7 +6,7 @@ from sg_rain_bot.raindata import RainData
 from telegram.error import NetworkError, Unauthorized
 
 api_token = '' #enter your api token
-n = 3 #bot will check for rain every n minutes
+n = 5 #bot will check for rain every n minutes
 
 #check weather every n minutes and send to suscribers if rain
 def send_updates_to_suscribers(bot, db, rain_data, last_time, n):
@@ -23,23 +23,24 @@ def send_updates_to_suscribers(bot, db, rain_data, last_time, n):
     if not last_time or time.time() > last_time + n*60:
         logger.debug(f'Checking for rain... ({time.time()} > {last_time} + {n}*60)')
         last_time = time.time()
-        text = rain_data.get_text()
-        logger.debug(f'Rain report: {text}')
+        rain_report_str, is_new_info = rain_data.get_text()
+        logger.info(f'Rain report: \n{rain_report_str}\n is_new_info = {is_new_info}')
         ls_tup = db.get_ls_rows()
         ls_ids = [x[0] for x in ls_tup]
-        if text:
+        if is_new_info:
             for id in ls_ids:
-                bot.send_text(id, text, delete_last=1)
+                bot.send_text(id, rain_report_str, delete_last=1)
     return last_time
 
 #add suscriber for any message received
-def handle_updates(bot, db):
+def handle_updates(bot, db, rain_data):
     '''Gets updates from bot and replies the users with the same text they sent.'''
     ls_updates = bot.get_updates()
     for tup in ls_updates:
         id, text = tup
         add_id_to_db(id, db)
-        bot.send_text(id, f'{id} added to suscriber list!\nYou will get a notification when there is rain in SG.')
+        rain_report_str, _ = rain_data.get_text()
+        bot.send_text(id, f'{id} added to suscriber list!\nHere is the latest rain update:\n\n{rain_report_str}')
 
 #core
 def main():
@@ -53,7 +54,7 @@ def main():
     while 1:
         try:
             last_time = send_updates_to_suscribers(bot, db, rain_data, last_time, n)
-            handle_updates(bot, db)
+            handle_updates(bot, db, rain_data)
         except NetworkError:
             time.sleep(1)
         except Unauthorized:
