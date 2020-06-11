@@ -61,7 +61,7 @@ def main():
             update_id += 1
         except Exception as e:
             logger.error(f'Exception {str(e)}')
-            time.sleep(1)
+            time.sleep(5)
 
 def add_id_to_db(id, db):
     '''Adds id to db if it is new
