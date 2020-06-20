@@ -8,128 +8,157 @@ logger = logging.getLogger('sg_rain_bot.raindata')
 class RainData:
     def __init__(self):
         '''Initilizes Bot object with attributes:
-            previous_text (str): previously generated rain report text
-            first_time (int): 1 if raindata is new, 0 if generated raindata before        
+            prev_report (str): previously generated rain report text   
         '''
-        self.previous_text = ''
-        self.first_time = 1
+        self.prev_report = ''
         logger.info('RainData loaded!')
         
     def get_text(self):
         '''
         Returns:
-            rain_report_str (str): Formatted rain report text to send to telegram users
+            report (str): Formatted rain report text to send to telegram users
             is_new_info (int): 1 if is new info, 0 o.w.
         '''
+        # webscraping
         source = urllib.request.urlopen('http://www.weather.gov.sg/weather-forecast-2hrnowcast-2/').read()
         soup = bs.BeautifulSoup(source,'html.parser')
+        ls_town = []
+        ls_weather = []
+        forecast_period = soup.find('span', {'class':'time'}).text
 
-        timing = soup.find('span', {'class':'time'}).text
-        tables = soup.find_all('table')
+        # get towns and weather
+        for table in soup.find_all('table'):
+            for tr in table.find_all('tr'):
+                ls_td = tr.find_all('td')
+                if ls_td:
+                    town = ls_td[0].text
+                    weather = ls_td[1].text.replace('\xa0', '')
+                    ls_town.append(town)
+                    ls_weather.append(weather)
+
+        # get rain levels
+        ls_rain_level = []
+        for weather in [x.lower() for x in ls_weather]:
+            rain_level = 0
+            if 'rain' in weather or 'shower' in weather:
+                if 'light' in weather:
+                    rain_level = -1
+                elif 'thunder' in weather:
+                    rain_level = -3
+                else:
+                    rain_level = -2
+            ls_rain_level.append(rain_level)
+            
+        # get other data structures
+        ls_region = [dt_town_region.get(town, 'unknown') for town in ls_town]
+        dt_region_max_rain_level = {region:1 for region in dt_region_town}
+        for region, rain_level in zip(ls_region, ls_rain_level):
+            if region=='unknown': continue
+            if rain_level<dt_region_max_rain_level[region]:
+                dt_region_max_rain_level[region] = rain_level
+        ls_region_order = [dt_region_order.get(region, 9) for region in ls_region]
+        ls_report = list(zip(ls_rain_level, ls_weather, ls_region_order, ls_region, ls_town))
+
+        # generate report string part 1
         report = ''
-        rain_list = []
-        for table in tables:
-            table_rows = table.find_all('tr')
-            for tr in table_rows:
-                td = tr.find_all('td')
-                row = [i.text for i in td]
-                if row:
-                    weather = row[1][1:]
-                    weather_wordlist = weather.split()
-                    for word in weather_wordlist:
-                        if word.lower() in rain_words:
-                            rain_list.append((region_dict[row[0]], row[0], row[1][1:], region_index.index(region_dict[row[0]])))
-        if rain_list:
-            i=0
-            j=0
-            while i < 3:
-                j=0
-                while j < 3:
-                    marked = 0
-                    for tuple in rain_list:
-                        if region_grid[i][j] == tuple[0]:
-                            report += '{} '.format(tuple[0])
-                            marked = 1
-                            break
-                    j+=1
-                    if not marked: report += '__ '
-                report += '\n'
-                i+=1
-            rain_list.sort(key = lambda tuple: tuple[3]) #sort region index
-            rain_list.sort(key = lambda tuple: tuple[2]) #sort weather
-            weather = ''
-            region = ''
-            for tuple in rain_list:
-                if tuple[2] != weather:
-                    weather = tuple[2]
-                    region = ''
-                    report += '\n<b>{}</b>'.format(weather.title())
-                if tuple[0] != region:
-                    region = tuple[0]
-                    report += '\n- [{}] '.format(region)
-                report += '{}, '.format(tuple[1])
-            rain_report_str = f'<b>Latest Forecast {timing}:</b>\n{report}\nwww.weather.gov.sg/weather-rain-area-50km'
-        else:
-            rain_report_str = 'No rain warnings :)'
-            if self.first_time:
-                self.first_time = 0
-                self.previous_text = rain_report_str        
-        if self.previous_text == rain_report_str:
+        weather_c = None
+        region_c = None
+        town_c = None
+        no_rain = 1
+        for rain_level, weather, _, region, town in sorted(ls_report):
+            if rain_level>=0:
+                continue #skip non rain
+            else:
+                no_rain = 0
+            if weather_c != weather:
+                weather_c = weather
+                report += f'\n<b>{weather}</b>'
+            if region_c != region:
+                region_c = region
+                report += f'\n- {region}: '
+            if town_c != town:
+                town_c = town
+                report += f'<i>{town}, </i>'
+
+        # generate report string part 2
+        if no_rain:
+            report+='No rain warnings :)'
+            
+        # generate report string part 3
+        report += f'\n\n<b>Forecast Period:</b> {forecast_period}'
+        for i, (_, rain_level) in enumerate(dt_region_max_rain_level.items()):
+            if i%3==0:
+                report+='\n'
+            report+=dt_rain_level_emoji[rain_level]
+            
+        report+='\n'
+        # generate is_new_info
+        is_new_info = 1
+        if self.prev_report == '' and no_rain: #first time and no rain
             is_new_info = 0
-        else:
-            self.previous_text = rain_report_str
-            is_new_info = 1
-        return rain_report_str, is_new_info
+        elif self.prev_report == report:
+            is_new_info = 0
+        return report, is_new_info
                 
-rain_words = ['rain', 'showers']
-region_index = ['NW','NN','NE','WW','CC','EE','SW','SS','SE']
-region_grid = [['NW', 'NN', 'NE'], ['WW', 'CC', 'EE'], ['SW', 'SS', 'SE']]
-region_dict = {
-'Ang Mo Kio' : 'CC'
-,'Bedok' : 'SE'
-,'Bishan' : 'CC'
-,'Boon Lay' : 'SW'
-,'Bukit Batok' : 'WW'
-,'Bukit Merah' : 'SS'
-,'Bukit Panjang' : 'CC'
-,'Bukit Timah' : 'CC'
-,'Central Water Catchment' : 'CC'
-,'Changi' : 'EE'
-,'Choa Chu Kang' : 'WW'
-,'Clementi' : 'WW'
-,'City' : 'SS'
-,'Geylang' : 'SE'
-,'Hougang' : 'EE'
-,'Jalan Bahar' : 'WW'
-,'Jurong East' : 'WW'
-,'Jurong Island' : 'SW'
-,'Jurong West' : 'WW'
-,'Kallang' : 'SE'
-,'Lim Chu Kang' : 'NW'
-,'Mandai' : 'NN'
-,'Marine Parade' : 'SE'
-,'Novena' : 'CC'
-,'Pasir Ris' : 'EE'
-,'Paya Lebar' : 'EE'
-,'Pioneer' : 'SW'
-,'Pulau Tekong' : 'EE'
-,'Pulau Ubin' : 'NE'
-,'Punggol' : 'NE'
-,'Queenstown' : 'SS'
-,'Seletar' : 'NE'
-,'Sembawang' : 'NN'
-,'Sengkang' : 'NE'
-,'Sentosa' : 'SS'
-,'Serangoon' : 'CC'
-,'Southern Islands' : 'SS'
-,'Sungei Kadut' : 'NW'
-,'Tampines' : 'EE'
-,'Tanglin' : 'CC'
-,'Tengah' : 'WW'
-,'Toa Payoh' : 'CC'
-,'Tuas' : 'SW'
-,'Western Islands' : 'SW'
-,'Western Water Catchment' : 'NW'
-,'Woodlands' : 'NN'
-,'Yishun' : 'NN'
+dt_rain_level_emoji = {
+    0:'\u2600',         #sun
+    -1:'\u2601',        #cloud
+    -2:'\u2614',        #rain cloud
+    -3:'\u26C8',        #rain cloud with thunder
 }
+dt_region_town = {
+'NW': ['Lim Chu Kang',
+    'Sungei Kadut',
+    'Western Water Catchment'],
+'NN': ['Mandai', 
+    'Sembawang',
+    'Woodlands', 
+    'Yishun'],
+'NE': ['Pulau Ubin',
+    'Punggol', 
+    'Seletar', 
+    'Sengkang'],
+'WW': ['Bukit Batok',
+    'Choa Chu Kang',
+    'Clementi',
+    'Jalan Bahar',
+    'Jurong East',
+    'Jurong West',
+    'Tengah'],
+'CC': ['Ang Mo Kio',
+    'Bishan',
+    'Bukit Panjang',
+    'Bukit Timah',
+    'Central Water Catchment',
+    'Novena',
+    'Serangoon',
+    'Tanglin',
+    'Toa Payoh'],
+'EE': ['Changi',
+    'Hougang',
+    'Pasir Ris',
+    'Paya Lebar',
+    'Pulau Tekong',
+    'Tampines'],
+'SW': ['Boon Lay', 
+    'Jurong Island', 
+    'Pioneer', 
+    'Tuas',
+    'Western Islands'],
+'SS': ['Bukit Merah',
+    'City', 
+    'Queenstown',
+    'Sentosa',
+    'Southern Islands'],
+'SE': ['Bedok',
+    'Geylang',
+    'Kallang',
+    'Marine Parade'],
+}
+dt_region_order = {}
+for i, region in enumerate(dt_region_town):
+    dt_region_order[region] = i
+dt_town_region = {}
+for k, v in dt_region_town.items():
+    for town in v:
+        dt_town_region[town]=k

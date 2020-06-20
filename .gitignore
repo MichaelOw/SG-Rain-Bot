@@ -6,6 +6,7 @@ db.db
 sg_rain_bot_old.py
 notebooks/.ipynb_checkpoints
 notebooks/RUN jupyter.bat
+notebooks/z_run_jupyter.bat
 sg_rain_bot/__pycache__
 old
 venv
