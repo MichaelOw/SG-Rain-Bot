@@ -89,7 +89,7 @@ class RainData:
                 report+='\n'
             report+=dt_rain_level_emoji[rain_level]
             
-        report+=f'\n<i>Map Summary</i>\n<a href="{ls_links[0]}">[2 Hour Forecast]</a> <a href="{ls_links[1]}">[Live Rain Radar]</a>'
+        report+=f'\n<i>Map Summary</i>\n[<a href="{ls_links[0]}">2 Hour Forecast</a>] [<a href="{ls_links[1]}">Live Rain Radar</a>]'
         # generate is_new_info
         is_new_info = 1
         if self.prev_report == '' and no_rain: #first time and no rain
