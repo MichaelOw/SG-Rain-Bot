@@ -72,7 +72,7 @@ class RainData:
                 no_rain = 0
             if weather_c != weather:
                 weather_c = weather
-                report += f'\n<b>{weather}</b>'
+                report += f'\n<b>{dt_rain_level_emoji[rain_level]} {weather}</b>'
             if region_c != region:
                 region_c = region
                 report += f'\n- {region}: '
@@ -91,7 +91,7 @@ class RainData:
                 report+='\n'
             report+=dt_rain_level_emoji[rain_level]
             
-        report+='\n'
+        report+='\n<i>Map Summary</i>'
         # generate is_new_info
         is_new_info = 1
         if self.prev_report == '' and no_rain: #first time and no rain
