@@ -40,7 +40,7 @@ def handle_updates(bot, db, rain_data):
         id, text = tup
         add_id_to_db(id, db)
         rain_report_str, _ = rain_data.get_text()
-        bot.send_text(id, f'You ({id}) have been added to suscriber list!\nHere is the latest rain update:\n{rain_report_str}')
+        bot.send_text(id, f'You have been added to suscriber list!\nHere is the latest rain update:\n{rain_report_str}')
 
 #core
 def main():
