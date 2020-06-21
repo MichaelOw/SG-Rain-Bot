@@ -56,8 +56,9 @@ class RainData:
             if region=='unknown': continue
             if rain_level<dt_region_max_rain_level[region]:
                 dt_region_max_rain_level[region] = rain_level
-        ls_region_order = [dt_region_order.get(region, 9) for region in ls_region]
-        ls_report = list(zip(ls_rain_level, ls_weather, ls_region_order, ls_region, ls_town))
+        #ls_region_order = [dt_region_order.get(region, 9) for region in ls_region]
+        #ls_report = list(zip(ls_rain_level, ls_weather, ls_region_order, ls_region, ls_town))
+        ls_report = list(zip(ls_rain_level, ls_weather, ls_town))
 
         # generate report string part 1
         report = ''
@@ -65,17 +66,14 @@ class RainData:
         region_c = None
         town_c = None
         no_rain = 1
-        for rain_level, weather, _, region, town in sorted(ls_report):
+        for rain_level, weather, town in sorted(ls_report):
             if rain_level>=0:
                 continue #skip non rain
             else:
                 no_rain = 0
             if weather_c != weather:
                 weather_c = weather
-                report += f'\n<b>{dt_rain_level_emoji[rain_level]} {weather}</b>'
-            if region_c != region:
-                region_c = region
-                report += f'\n- {region}: '
+                report += f'\n<b>{dt_rain_level_emoji[rain_level]} {weather.title()}</b>\n'
             if town_c != town:
                 town_c = town
                 report += f'<i>{town}, </i>'
@@ -91,7 +89,7 @@ class RainData:
                 report+='\n'
             report+=dt_rain_level_emoji[rain_level]
             
-        report+='\n<i>Map Summary</i>'
+        report+=f'\n<i>Map Summary</i>\n<a href="{ls_links[0]}">[2 Hour Forecast]</a> <a href="{ls_links[1]}">[Live Rain Radar]</a>'
         # generate is_new_info
         is_new_info = 1
         if self.prev_report == '' and no_rain: #first time and no rain
@@ -99,7 +97,12 @@ class RainData:
         elif self.prev_report == report:
             is_new_info = 0
         return report, is_new_info
-                
+
+ls_links = [
+    'http://www.weather.gov.sg/weather-forecast-2hrnowcast-2/',
+    'http://www.weather.gov.sg/weather-rain-area-50km',
+]
+
 dt_rain_level_emoji = {
     0:'\u2600',         #sun
     -1:'\u2601',        #cloud
@@ -155,9 +158,9 @@ dt_region_town = {
     'Kallang',
     'Marine Parade'],
 }
-dt_region_order = {}
-for i, region in enumerate(dt_region_town):
-    dt_region_order[region] = i
+# dt_region_order = {}
+# for i, region in enumerate(dt_region_town):
+    # dt_region_order[region] = i
 dt_town_region = {}
 for k, v in dt_region_town.items():
     for town in v:
