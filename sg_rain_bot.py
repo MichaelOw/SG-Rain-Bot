@@ -87,7 +87,7 @@ if __name__ == '__main__':
     logger = logging.getLogger('sg_rain_bot')
     logger.setLevel(logging.DEBUG)
     c_handler = logging.StreamHandler() #stream log
-    c_handler.setLevel(logging.DEBUG) #DEBUG INFO ERROR
+    c_handler.setLevel(logging.INFO) #DEBUG INFO ERROR
     c_handler.setFormatter(logging.Formatter('%(message)s'))
     logger.addHandler(c_handler)
     f_handler = logging.FileHandler('log.log') #file log

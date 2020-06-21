@@ -106,8 +106,8 @@ ls_links = [
 dt_rain_level_emoji = {
     0:'\u2600',         #sun
     -1:'\u2601',        #cloud
-    -2:'\u2614',        #rain cloud
-    -3:'\u26C8',        #rain cloud with thunder
+    -2:'\U0001F327',    #cloud with rain
+    -3:'\u26C8',        #cloud with rain and thunder
 }
 dt_region_town = {
 'NW': ['Lim Chu Kang',
