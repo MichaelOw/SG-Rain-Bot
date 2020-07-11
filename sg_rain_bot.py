@@ -1,3 +1,8 @@
+'''
+todo
+- change 3x3 grid to 3x4
+'''
+
 import time
 import logging
 from sg_rain_bot.bot import Bot

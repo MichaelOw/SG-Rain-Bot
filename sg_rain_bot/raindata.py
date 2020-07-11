@@ -4,7 +4,6 @@ import urllib.request
 
 logger = logging.getLogger('sg_rain_bot.raindata')
 
-# Pardon the spaghetti code. This class was written a long time ago, haven't gotten around to refactor it yet.
 class RainData:
     def __init__(self):
         '''Initilizes Bot object with attributes:
