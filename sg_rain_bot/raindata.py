@@ -95,6 +95,7 @@ class RainData:
             is_new_info = 0
         elif self.prev_report == report:
             is_new_info = 0
+        self.prev_report = report
         return report, is_new_info
 
 ls_links = [
