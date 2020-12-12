@@ -93,14 +93,16 @@ class RainData:
         is_new_info = 1
         if self.prev_report == '' and no_rain: #first time and no rain
             is_new_info = 0
-        elif self.prev_report == report:
-            is_new_info = 0
+        #elif self.prev_report == report: #same report as previous
+            #is_new_info = 0
         self.prev_report = report
         return report, is_new_info
 
 ls_links = [
-    'http://www.weather.gov.sg/weather-forecast-2hrnowcast-2/',
-    'http://www.weather.gov.sg/weather-rain-area-50km',
+    #'http://www.weather.gov.sg/weather-forecast-2hrnowcast-2/',
+    #'http://www.weather.gov.sg/weather-rain-area-50km',
+    'https://www.nea.gov.sg/weather#weather-forecast2hr',
+    'https://www.nea.gov.sg/weather/rain-areas',
 ]
 
 dt_rain_level_emoji = {

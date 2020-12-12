@@ -10,3 +10,4 @@ notebooks/z_run_jupyter.bat
 sg_rain_bot/__pycache__
 old
 venv
+z_run_sg_rain_bot.bat
